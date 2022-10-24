@@ -21,15 +21,19 @@ var listCmd = &cobra.Command{
 	currently on your task list. `,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("You have the following tasks: ")
 		db, err := bolt.Open("todo_list.db", 0600, nil)
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer db.Close()
 
+		fmt.Println("You have the following tasks: ")
 		db.View(func(tx *bolt.Tx) error{
 			b := tx.Bucket([]byte("MyTasks"))
+			if(b == nil) {
+				return nil
+			}
+
 			c := b.Cursor()
 			temp_at := 1
 

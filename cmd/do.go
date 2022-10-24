@@ -36,6 +36,10 @@ to quickly create a Cobra application.`,
 
 			db.Update(func(tx *bolt.Tx) error{
 				b := tx.Bucket([]byte("MyTasks"))
+				if(b == nil){
+					fmt.Println("No tasks currently on list.")
+					return nil
+				}
 				c := b.Cursor()
 				key, val := c.First()
 
