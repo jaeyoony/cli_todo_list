@@ -6,22 +6,41 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/spf13/cobra"
+	bolt "go.etcd.io/bbolt"
+	// "encoding/binary"
 )
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all of your incompleted tasks",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Long: `Retrieves a list of all the incompleted tasks that are
+	currently on your task list. `,
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("list called")
+		fmt.Println("You have the following tasks: ")
+		db, err := bolt.Open("todo_list.db", 0600, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer db.Close()
+
+		db.View(func(tx *bolt.Tx) error{
+			b := tx.Bucket([]byte("MyTasks"))
+			c := b.Cursor()
+			temp_at := 1
+
+			for k, v := c.First(); k != nil; k,v = c.Next() {
+				fmt.Printf("%d : %s \n", temp_at, string(v))
+				temp_at += 1 
+			}
+
+			return nil
+		})
+
 	},
 }
 

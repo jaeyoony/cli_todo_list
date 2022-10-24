@@ -6,8 +6,12 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/spf13/cobra"
+	bolt "go.etcd.io/bbolt"
+	"strconv"
+	// "encoding/binary"
 )
 
 // doCmd represents the do command
@@ -21,7 +25,29 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("do called")
+		db, err := bolt.Open("todo_list.db", 0600, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer db.Close()
+
+		for _, arg := range(args){
+			temp_int, _ := strconv.Atoi(arg)
+
+			db.Update(func(tx *bolt.Tx) error{
+				b := tx.Bucket([]byte("MyTasks"))
+				c := b.Cursor()
+				key, val := c.First()
+
+				for i := 1; i < temp_int; i++ {
+					key, val = c.Next()
+				}
+
+				// finished := b.Get([]byte(Itob(temp_int)))
+				fmt.Printf("Completed task \"%s\"\n", val)
+				return b.Delete(key)
+			})
+		}
 	},
 }
 
